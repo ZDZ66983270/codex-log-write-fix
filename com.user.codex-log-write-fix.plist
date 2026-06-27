@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.user.codex-log-write-fix</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>/Users/zhangzy/Library/Application Support/Codex/codex_log_write_fix.sh</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StartInterval</key>
+  <integer>60</integer>
+  <key>StandardOutPath</key>
+  <string>/Users/zhangzy/Library/Logs/com.user.codex-log-write-fix.stdout.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/zhangzy/Library/Logs/com.user.codex-log-write-fix.stderr.log</string>
+</dict>
+</plist>
