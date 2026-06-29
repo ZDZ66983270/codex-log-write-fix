@@ -1,0 +1,140 @@
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
+
+
+notify = ["/Users/zhangzy/.codex/computer-use/Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient", "turn-ended"]
+service_tier = "default"
+
+[analytics]
+enabled = false
+
+[otel]
+exporter = "none"
+trace_exporter = "none"
+metrics_exporter = "none"
+
+[mcp_servers.figma]
+url = "https://mcp.figma.com/mcp"
+enabled = false
+
+[mcp_servers.playwright]
+args = ["@playwright/mcp@latest"]
+command = "npx"
+
+[mcp_servers.linear]
+url = "https://mcp.linear.app/mcp"
+
+[mcp_servers.notion]
+url = "https://mcp.notion.com/mcp"
+
+[mcp_servers.node_repl]
+args = []
+command = "/Applications/Codex.app/Contents/Resources/cua_node/bin/node_repl"
+startup_timeout_sec = 120
+
+[mcp_servers.node_repl.env]
+NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS = "1000"
+NODE_REPL_NODE_MODULE_DIRS = "/Applications/Codex.app/Contents/Resources/cua_node/lib/node_modules"
+NODE_REPL_NODE_PATH = "/Applications/Codex.app/Contents/Resources/cua_node/bin/node"
+NODE_REPL_TRUSTED_CODE_PATHS = "/Users/zhangzy/.codex"
+CODEX_HOME = "/Users/zhangzy/.codex"
+NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "a05cdd282c2717f076e11bc0e94b7b20e1fc4759dbe28440bd1c734953606a56"
+BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
+NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = "Control the in-app browser in conjunction with the Browser Plugin."
+NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = "Control the Chrome browser in conjunction with the Chrome Plugin. Prefer this method of controlling Chrome over alternatives (such as Computer Use) unless the user explicitly mentions an alternative."
+BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
+BROWSER_USE_CODEX_APP_VERSION = "26.623.61825"
+CODEX_CLI_PATH = "/Applications/Codex.app/Contents/Resources/codex"
+
+[features]
+multi_agent = true
+js_repl = false
+
+[projects."/Users/zhangzy/My Docs/Privates/22-AI编程/VERA"]
+trust_level = "trusted"
+
+[projects."/Users/zhangzy/My Docs/Privates/22-AI编程/UZI"]
+trust_level = "trusted"
+
+[projects."/Users/zhangzy/My Docs/Privates/22-AI编程/LaunchpadPlus"]
+trust_level = "trusted"
+
+[projects."/Users/zhangzy/My Docs/Privates/22-AI编程/AI Hedge Fund"]
+trust_level = "trusted"
+
+[projects."/Users/zhangzy/My Docs/Privates/1-房产/3-英国/4-谢菲尔德 Nebula Student Sheffield/诉讼准备/3CS"]
+trust_level = "trusted"
+
+[projects."/Users/zhangzy/My Docs/Privates/22-AI编程/Tax"]
+trust_level = "trusted"
+
+[projects."/Users/zhangzy/My Docs/Privates/22-Vibe Coding/open-design"]
+trust_level = "trusted"
+
+[projects."/Users/zhangzy/My Docs/Privates/22-Vibe Coding/VERA"]
+trust_level = "trusted"
+
+[projects."/Users/zhangzy/My Docs/Privates/22-Vibe Coding/UZI"]
+trust_level = "trusted"
+
+[projects."/Users/zhangzy/My Docs/Privates/22-Vibe Coding/Ladder"]
+trust_level = "trusted"
+
+[projects."/Users/zhangzy/My Docs/Privates/22-Vibe Coding/Tax"]
+trust_level = "trusted"
+
+[projects."/Users/zhangzy/My Docs/Privates/22-Vibe Coding/launchpad"]
+trust_level = "trusted"
+
+[projects."/Users/zhangzy/Documents/Codex"]
+trust_level = "trusted"
+
+[projects."/Users/zhangzy/My Docs/Privates/22-Vibe Coding/Codex-log-write-fix"]
+trust_level = "trusted"
+
+[marketplaces.openai-bundled]
+last_updated = "2026-06-29T03:44:22Z"
+source_type = "local"
+source = "/Users/zhangzy/.codex/.tmp/bundled-marketplaces/openai-bundled"
+
+[marketplaces.openai-primary-runtime]
+last_updated = "2026-06-24T05:35:49Z"
+source_type = "local"
+source = "/Users/zhangzy/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
+
+[notice.model_migrations]
+"gpt-5.3-codex" = "gpt-5.4"
+
+[plugins."documents@openai-primary-runtime"]
+enabled = true
+
+[plugins."spreadsheets@openai-primary-runtime"]
+enabled = true
+
+[plugins."presentations@openai-primary-runtime"]
+enabled = true
+
+[plugins."browser@openai-bundled"]
+enabled = true
+
+[plugins."pdf@openai-primary-runtime"]
+enabled = true
+
+[plugins."template-creator@openai-primary-runtime"]
+enabled = true
+
+[desktop]
+appearanceTheme = "dark"
+sansFontSize = 20
+codeFontSize = 20
+followUpQueueMode = "steer"
+localeOverride = "zh-CN"
+conversationDetailMode = "STEPS_EXECUTION"
+
+[desktop.open-in-target-preferences]
+global = "xcode"
+
+[desktop.open-in-target-preferences.perPath]
+"/Users/zhangzy/Documents/New project" = "antigravity"
+"/Users/zhangzy/My Docs/Privates/22-AI编程/Music转换/NCM-MP3" = "terminal"
+"/Users/zhangzy/My Docs/Privates/22-AI编程/Tax" = "xcode"

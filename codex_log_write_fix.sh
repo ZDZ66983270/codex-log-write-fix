@@ -4,6 +4,8 @@ set -euo pipefail
 
 DB_LINK="${HOME}/.codex/logs_2.sqlite"
 LOG_FILE="${HOME}/Library/Logs/com.user.codex-log-write-fix.log"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+OBSERVER_SCRIPT="${SCRIPT_DIR}/codex_trace_observer.sh"
 
 mkdir -p "$(dirname "$LOG_FILE")"
 
@@ -31,13 +33,25 @@ if [[ ! -f "$DB_PATH" ]]; then
   exit 0
 fi
 
-TRIGGER_SQL="CREATE TRIGGER IF NOT EXISTS block_trace_logs BEFORE INSERT ON logs WHEN NEW.level = 'TRACE' BEGIN SELECT RAISE(IGNORE); END;"
-CHECK_SQL="SELECT name FROM sqlite_master WHERE type='trigger' AND name='block_trace_logs';"
+read -r -d '' TRIGGER_SQL <<'SQL' || true
+CREATE TRIGGER block_trace_logs
+BEFORE INSERT ON logs
+WHEN NEW.level = 'TRACE'
+BEGIN
+  SELECT RAISE(IGNORE);
+END;
+SQL
 
-current_trigger="$(sqlite3 "$DB_PATH" "$CHECK_SQL" 2>/dev/null || true)"
-if [[ "$current_trigger" != "block_trace_logs" ]]; then
+current_trigger_sql="$(sqlite3 "$DB_PATH" "SELECT sql FROM sqlite_master WHERE type='trigger' AND name='block_trace_logs';" 2>/dev/null || true)"
+
+if [[ "$current_trigger_sql" != "$TRIGGER_SQL" ]]; then
+  sqlite3 "$DB_PATH" "DROP TRIGGER IF EXISTS block_trace_logs;"
   sqlite3 "$DB_PATH" "$TRIGGER_SQL"
-  log_msg "installed TRACE trigger on ${DB_PATH}"
+  log_msg "installed pure-block TRACE trigger on ${DB_PATH}"
 fi
 
 sqlite3 "$DB_PATH" "PRAGMA wal_checkpoint(PASSIVE);" >/dev/null 2>&1 || true
+
+if [[ -f "$OBSERVER_SCRIPT" ]]; then
+  /bin/zsh "$OBSERVER_SCRIPT" >/dev/null 2>&1 || true
+fi

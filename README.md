@@ -4,11 +4,12 @@
 
 ## 当前方案
 
-当前方案分成 3 层：
+当前方案分成 4 层：
 
 1. 日志库重定向到 `/tmp`
 2. `TRACE` 写入由 SQLite trigger 拦截
 3. `launchd` 每 60 秒巡检一次，必要时自动补回 trigger
+4. 外部观测脚本把侧面指标写到 `/tmp`，不在 SQLite 里做高频计数
 
 ## 日志库路径
 
@@ -35,7 +36,17 @@ LaunchAgent 实际执行的脚本副本：
 - 找到 `~/.codex/logs_2.sqlite` 当前实际指向的数据库
 - 检查 `block_trace_logs` trigger 是否存在
 - 如果 trigger 丢失，则自动补回
+- trigger 使用“纯拦截”模式，不再更新 SQLite 统计表
 - 顺手执行一次 `PRAGMA wal_checkpoint(PASSIVE);`
+
+外部观测脚本：
+
+- [codex_trace_observer.sh](/Users/zhangzy/My%20Docs/Privates/22-Vibe%20Coding/Codex-log-write-fix/codex_trace_observer.sh)
+
+作用：
+
+- 把 trigger 是否存在、最近窗口里是否出现落库 `TRACE`、`WAL` 大小和变化量、普通日志级别分布写到 `/tmp`
+- 这些信息写在 SQLite 外部，避免为了统计 `TRACE` 再回到高频写库
 
 ## LaunchAgent
 
@@ -58,7 +69,7 @@ LaunchAgent 实际执行的脚本副本：
 
 ## SQLite 保护逻辑
 
-当前数据库中有一个统计表：
+旧版本里曾使用 `trace_block_stats` 表做统计，但这会让“统计本身”也跟着写库：
 
 ```sql
 CREATE TABLE trace_block_stats (
@@ -70,7 +81,7 @@ CREATE TABLE trace_block_stats (
 );
 ```
 
-以及一个拦截 `TRACE` 的 trigger：
+旧版 trigger：
 
 ```sql
 CREATE TRIGGER block_trace_logs
@@ -100,11 +111,29 @@ BEGIN
 END;
 ```
 
-作用：
+旧版作用：
 
 - 每次遇到 `TRACE` 插入请求时，先更新计数
 - 然后忽略这条插入
 - 因此 `TRACE` 不会真正写进 `logs` 表
+
+后来虽然降成过低频采样版，但它本质上仍然会周期性写 SQLite。当前推荐是纯拦截版 trigger：
+
+```sql
+CREATE TRIGGER block_trace_logs
+BEFORE INSERT ON logs
+WHEN NEW.level = 'TRACE'
+BEGIN
+  SELECT RAISE(IGNORE);
+END;
+```
+
+纯拦截版作用：
+
+- 每条 `TRACE` 仍然会被拦截
+- SQLite 内部不再为了 `TRACE` 统计去更新任何计数
+- `TRACE` 观测改由外部脚本完成
+- 这样可以把 `TRACE` 的附加写盘压到接近零
 
 ## 常用检查命令
 
@@ -120,10 +149,28 @@ ls -l ~/.codex/logs_2.sqlite ~/.codex/logs_2.sqlite-wal ~/.codex/logs_2.sqlite-s
 sqlite3 ~/.codex/logs_2.sqlite "select name, sql from sqlite_master where type='trigger';"
 ```
 
-查看 `TRACE` 拦截计数：
+查看当前 trigger 具体定义：
 
 ```bash
-sqlite3 ~/.codex/logs_2.sqlite "select counter_name, blocked_count, datetime(last_blocked_ts,'unixepoch','localtime') from trace_block_stats;"
+sqlite3 ~/.codex/logs_2.sqlite "select sql from sqlite_master where type='trigger' and name='block_trace_logs';"
+```
+
+运行一次外部观测：
+
+```bash
+/bin/zsh ./codex_trace_observer.sh
+```
+
+查看最新外部观测快照：
+
+```bash
+cat /tmp/codex_trace_observer_latest.tsv
+```
+
+查看外部观测历史：
+
+```bash
+tail -n 20 /tmp/codex_trace_observer.log
 ```
 
 查看最近 15 分钟日志级别分布：
@@ -144,7 +191,7 @@ launchctl print gui/$(id -u)/com.user.codex-log-write-fix
 
 - 最近窗口里没有 `TRACE`
 - `block_trace_logs` trigger 存在
-- `trace_block_stats.blocked_count` 持续增长，说明拦截还在生效
+- 外部观测里 `trace_rows_last_900s=0`
 - `WAL` 没有明显膨胀
 
 需要重新关注的信号：
@@ -156,6 +203,6 @@ launchctl print gui/$(id -u)/com.user.codex-log-write-fix
 
 ## 备注
 
-- `blocked_count` 只能统计“启用计数版 trigger 之后”的拦截次数
-- 更早历史的 `TRACE` 拦截次数无法精确回溯
+- 在“不改 Codex 本体”的前提下，外部无法精确拿到每一条被 trigger `RAISE(IGNORE)` 的 `TRACE`
+- 外部观测能提供的是侧面证据：trigger 是否存在、最近窗口里是否有漏进 `logs` 的 `TRACE`、`WAL` 是否异常膨胀、普通日志量是否异常
 - `stderr` 里若看到旧路径报错，可能是早期版本 LaunchAgent 的历史残留，不一定代表当前守护失败

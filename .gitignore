@@ -3,3 +3,5 @@
 # macOS Finder metadata
 */.DS_Store
 
+# local live config backup
+config.toml.live.backup
