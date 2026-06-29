@@ -43,8 +43,19 @@ END;
 SQL
 
 current_trigger_sql="$(sqlite3 "$DB_PATH" "SELECT sql FROM sqlite_master WHERE type='trigger' AND name='block_trace_logs';" 2>/dev/null || true)"
+normalized_trigger_sql="$(printf '%s' "$current_trigger_sql" | tr '\n' ' ' | tr -s '[:space:]' ' ' | sed 's/^ //; s/ $//')"
+trigger_is_valid=0
 
-if [[ "$current_trigger_sql" != "$TRIGGER_SQL" ]]; then
+if [[ -n "$normalized_trigger_sql" ]]; then
+  if [[ "$normalized_trigger_sql" == *"CREATE TRIGGER block_trace_logs"* ]] \
+    && [[ "$normalized_trigger_sql" == *"BEFORE INSERT ON logs"* ]] \
+    && [[ "$normalized_trigger_sql" == *"WHEN NEW.level = 'TRACE'"* ]] \
+    && [[ "$normalized_trigger_sql" == *"SELECT RAISE(IGNORE)"* ]]; then
+    trigger_is_valid=1
+  fi
+fi
+
+if [[ "$trigger_is_valid" -ne 1 ]]; then
   sqlite3 "$DB_PATH" "DROP TRIGGER IF EXISTS block_trace_logs;"
   sqlite3 "$DB_PATH" "$TRIGGER_SQL"
   log_msg "installed pure-block TRACE trigger on ${DB_PATH}"

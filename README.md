@@ -35,9 +35,15 @@ LaunchAgent 实际执行的脚本副本：
 
 - 找到 `~/.codex/logs_2.sqlite` 当前实际指向的数据库
 - 检查 `block_trace_logs` trigger 是否存在
-- 如果 trigger 丢失，则自动补回
+- 如果 trigger 缺失，或关键结构不再是纯拦截版，则自动补回
 - trigger 使用“纯拦截”模式，不再更新 SQLite 统计表
 - 顺手执行一次 `PRAGMA wal_checkpoint(PASSIVE);`
+
+实现细节：
+
+- 自愈脚本不再按整段 `sqlite_master.sql` 文本逐字比较
+- 因为 SQLite 会规范化 trigger SQL 的格式，逐字比较会导致“明明一样却每分钟都重装”
+- 当前只校验几个关键结构：trigger 名称、`BEFORE INSERT ON logs`、`WHEN NEW.level = 'TRACE'`、`SELECT RAISE(IGNORE)`
 
 外部观测脚本：
 
